@@ -8,7 +8,7 @@ class AppState {
     this.filters = {
       searchText: ''
     }
-    this.layout = 'masonry'
+    this.layout = 'grid'
     this.zenMode = false
     this.connectionStatus = 'connecting'
     this.isPaused = false
@@ -45,8 +45,7 @@ class AppState {
   }
   
   toggleLayout() {
-    this.layout = this.layout === 'masonry' ? 'grid' : 'masonry'
-    this.notify()
+    // Single fixed grid layout, no toggle needed
   }
   
   toggleZenMode() {

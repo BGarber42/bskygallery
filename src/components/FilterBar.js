@@ -9,10 +9,6 @@ export function createFilterBar() {
   searchInput.className = 'filter-control search-input'
   searchInput.placeholder = 'Search...'
   
-  const layoutButton = document.createElement('button')
-  layoutButton.className = 'filter-control layout-toggle'
-  layoutButton.textContent = `Layout: ${state.layout}`
-  
   const zenButton = document.createElement('button')
   zenButton.className = 'filter-control zen-toggle'
   zenButton.textContent = 'Zen Mode'
@@ -34,11 +30,6 @@ export function createFilterBar() {
     searchTimeout = setTimeout(() => {
       state.setSearchText(e.target.value)
     }, 300)
-  })
-  
-  layoutButton.addEventListener('click', () => {
-    state.toggleLayout()
-    layoutButton.textContent = `Layout: ${state.layout}`
   })
   
   zenButton.addEventListener('click', () => {
@@ -64,7 +55,6 @@ export function createFilterBar() {
   })
   
   container.appendChild(searchInput)
-  container.appendChild(layoutButton)
   container.appendChild(zenButton)
   container.appendChild(pauseButton)
   container.appendChild(statsDisplay)
