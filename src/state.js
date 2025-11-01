@@ -1,6 +1,7 @@
 import { shouldShowImage } from './utils/filters.js'
 
 const MAX_IMAGES = 200
+const NUM_COLUMNS = 8
 
 class AppState {
   constructor() {
@@ -32,8 +33,11 @@ class AppState {
     
     this.images.unshift(image)
     
-    if (this.images.length > MAX_IMAGES) {
-      this.images = this.images.slice(0, MAX_IMAGES)
+    if (this.images.length >= MAX_IMAGES + NUM_COLUMNS) {
+      const numToRemove = Math.floor((this.images.length - MAX_IMAGES) / NUM_COLUMNS) * NUM_COLUMNS
+      if (numToRemove > 0) {
+        this.images = this.images.slice(0, this.images.length - numToRemove)
+      }
     }
     
     this.notify()
