@@ -103,7 +103,7 @@ body {
 }
 
 .image-item {
-  flex: 0 0 calc(16.666% - 1rem);
+  flex: 0 0 calc(12.5% - 1rem);
   position: relative;
   overflow: hidden;
   border-radius: 8px;
