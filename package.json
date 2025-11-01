@@ -9,10 +9,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@atproto/api": "^0.9.14",
-    "@atproto/xrpc": "^0.9.14",
-    "cborg": "^3.0.6",
-    "@ipld/car": "^8.0.1"
+    "@atproto/api": "^0.17.7",
+    "@atproto/xrpc": "^0.7.5",
+    "cborg": "^4.2.18",
+    "@ipld/car": "^5.4.2"
   },
   "devDependencies": {
     "vite": "^5.3.1"
