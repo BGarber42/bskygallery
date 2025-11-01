@@ -1,24 +1,26 @@
 import state from '../state.js'
 import { openModal } from './Modal.js'
 
+const NUM_COLUMNS = 6
+
 export function createImageGrid() {
   const container = document.createElement('div')
   container.id = 'image-grid-container'
-  container.className = `grid-layout ${state.layout}`
+  container.className = 'grid-layout grid'
   
   let unsubscribe = null
   
   function render() {
-    const filteredImages = state.getFilteredImages()
-    
+    const filteredImages = state.getFilteredImages().slice().reverse()
+
+    // Clear the container
     container.innerHTML = ''
     
-    filteredImages.forEach(image => {
+    // Add images in chronological order
+    for (const image of filteredImages) {
       const imageElement = createImageElement(image)
       container.appendChild(imageElement)
-    })
-    
-    updateLayout()
+    }
   }
   
   function createImageElement(post) {
@@ -120,25 +122,14 @@ export function createImageGrid() {
   }
   
   function updateLayout() {
-    if (state.layout === 'masonry') {
-      container.classList.remove('grid')
-      container.classList.add('masonry')
-    } else {
-      container.classList.remove('masonry')
-      container.classList.add('grid')
-    }
-    
+    // Apply aspect ratios for grid items
     const items = container.querySelectorAll('.image-item')
     items.forEach(item => {
-      if (state.layout === 'grid') {
-        const img = item.querySelector('img')
-        const aspectRatio = img?.dataset.aspectRatio
-        if (aspectRatio) {
-          const [width, height] = aspectRatio.split('/').map(Number)
-          item.style.aspectRatio = (width / height).toString()
-        } else {
-          item.style.aspectRatio = ''
-        }
+      const img = item.querySelector('img')
+      const aspectRatio = img?.dataset.aspectRatio
+      if (aspectRatio) {
+        const [width, height] = aspectRatio.split('/').map(Number)
+        item.style.aspectRatio = (width / height).toString()
       } else {
         item.style.aspectRatio = ''
       }
@@ -147,6 +138,7 @@ export function createImageGrid() {
   
   function handleStateChange(appState) {
     render()
+    updateLayout()
     
     if (appState.zenMode) {
       document.body.classList.add('zen-mode')
@@ -157,6 +149,7 @@ export function createImageGrid() {
   
   unsubscribe = state.subscribe(handleStateChange)
   render()
+  updateLayout()
   
   return container
 }
