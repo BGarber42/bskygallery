@@ -1,0 +1,21 @@
+{
+  "name": "bskygallery",
+  "version": "1.0.0",
+  "description": "Real-time Bluesky firehose image gallery",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@atproto/api": "^0.9.14",
+    "@atproto/xrpc": "^0.9.14",
+    "cborg": "^3.0.6",
+    "@ipld/car": "^8.0.1"
+  },
+  "devDependencies": {
+    "vite": "^5.3.1"
+  }
+}
+
