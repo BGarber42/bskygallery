@@ -101,7 +101,7 @@ body {
 
 .grid-layout.masonry {
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  grid-auto-rows: 10px;
+  grid-auto-rows: auto;
 }
 
 .grid-layout.grid {
@@ -126,19 +126,68 @@ body {
 
 .image-item img {
   width: 100%;
+  height: auto;
+  display: block;
+  transition: transform 0.2s ease;
+}
+
+.multi-image-grid {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+}
+
+.multi-image-grid.two-images {
+  grid-template-columns: 1fr 1fr;
+}
+
+.multi-image-grid.two-images img {
+  width: 100%;
   height: 100%;
   object-fit: cover;
-  display: block;
-  transition: filter 0.3s ease, transform 0.2s ease;
 }
 
-.image-item .blurred {
-  filter: blur(15px);
-  cursor: not-allowed;
+.multi-image-grid.three-images {
+  grid-template-columns: 2fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 2px;
+  min-height: 250px;
 }
 
-.image-item .blurred:hover {
-  filter: blur(20px);
+.multi-image-grid.three-images .image-left {
+  grid-row: 1 / -1;
+}
+
+.multi-image-grid.three-images .image-left img,
+.multi-image-grid.three-images .image-right img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.multi-image-grid.four-plus-images {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  position: relative;
+  aspect-ratio: 1;
+}
+
+.multi-image-grid.four-plus-images img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.image-count-badge {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  font-size: 1.2rem;
+  border-top-left-radius: 8px;
 }
 
 .image-overlay {
@@ -210,6 +259,9 @@ body {
   align-items: center;
   justify-content: center;
   max-height: 90vh;
+  gap: 1rem;
+  flex-wrap: wrap;
+  overflow-y: auto;
 }
 
 .modal-image-wrapper img {
@@ -217,6 +269,10 @@ body {
   max-height: 90vh;
   object-fit: contain;
   border-radius: 8px;
+}
+
+.modal-image-wrapper img:only-child {
+  width: auto;
 }
 
 .modal-info {

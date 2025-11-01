@@ -2,7 +2,7 @@ let currentModal = null
 let currentImageIndex = -1
 let filteredImages = []
 
-export function openModal(image) {
+export function openModal(post) {
   if (currentModal) {
     closeModal()
   }
@@ -23,31 +23,51 @@ export function openModal(image) {
   const imageWrapper = document.createElement('div')
   imageWrapper.className = 'modal-image-wrapper'
   
-  const img = document.createElement('img')
-  img.src = image.fullsizeUrl
-  img.alt = image.alt
-  
-  img.addEventListener('error', () => {
-    img.src = image.thumbUrl
-  })
+  // Handle multiple images vs single image
+  if (post.images && Array.isArray(post.images)) {
+    // Multi-image post
+    post.images.forEach((imgData, index) => {
+      const img = document.createElement('img')
+      img.src = imgData.fullsizeUrl
+      img.alt = imgData.alt || ''
+      img.loading = 'lazy'
+      
+      img.addEventListener('error', () => {
+        img.src = imgData.thumbUrl
+      })
+      
+      imageWrapper.appendChild(img)
+    })
+  } else {
+    // Legacy single image
+    const img = document.createElement('img')
+    img.src = post.fullsizeUrl || post.thumbUrl
+    img.alt = post.alt || ''
+    
+    img.addEventListener('error', () => {
+      img.src = post.thumbUrl
+    })
+    
+    imageWrapper.appendChild(img)
+  }
   
   const infoPanel = document.createElement('div')
   infoPanel.className = 'modal-info'
   
   const text = document.createElement('p')
   text.className = 'modal-text'
-  text.textContent = image.text || '(no text)'
+  text.textContent = post.text || '(no text)'
   
   const author = document.createElement('div')
   author.className = 'modal-author'
-  author.textContent = `@${image.authorHandle || image.authorDid}`
+  author.textContent = `@${post.authorHandle || post.authorDid}`
   
   const timestamp = document.createElement('div')
   timestamp.className = 'modal-timestamp'
-  timestamp.textContent = formatTimestamp(image.timestamp)
+  timestamp.textContent = formatTimestamp(post.timestamp)
   
   const link = document.createElement('a')
-  link.href = image.postUrl
+  link.href = post.postUrl
   link.target = '_blank'
   link.rel = 'noopener noreferrer'
   link.className = 'modal-link'
@@ -57,8 +77,6 @@ export function openModal(image) {
   infoPanel.appendChild(author)
   infoPanel.appendChild(timestamp)
   infoPanel.appendChild(link)
-  
-  imageWrapper.appendChild(img)
   
   modalContent.appendChild(closeButton)
   modalContent.appendChild(imageWrapper)

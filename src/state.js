@@ -6,12 +6,12 @@ class AppState {
   constructor() {
     this.images = []
     this.filters = {
-      nsfwMode: 'blurred',
       searchText: ''
     }
     this.layout = 'masonry'
     this.zenMode = false
     this.connectionStatus = 'connecting'
+    this.isPaused = false
     this.listeners = new Set()
   }
   
@@ -25,17 +25,17 @@ class AppState {
   }
   
   addImage(image) {
+    // Only add images if not paused
+    if (this.isPaused) {
+      return
+    }
+    
     this.images.unshift(image)
     
     if (this.images.length > MAX_IMAGES) {
       this.images = this.images.slice(0, MAX_IMAGES)
     }
     
-    this.notify()
-  }
-  
-  setNsfwMode(mode) {
-    this.filters.nsfwMode = mode
     this.notify()
   }
   
@@ -51,6 +51,11 @@ class AppState {
   
   toggleZenMode() {
     this.zenMode = !this.zenMode
+    this.notify()
+  }
+  
+  togglePaused() {
+    this.isPaused = !this.isPaused
     this.notify()
   }
   
