@@ -5,14 +5,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
-    sourcemap: false,
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          'atproto': ['@atproto/api', '@atproto/xrpc']
-        }
-      }
-    }
+    sourcemap: false
   },
   server: {
     port: 3000,
