@@ -21,40 +21,74 @@ export function createImageGrid() {
     updateLayout()
   }
   
-  function createImageElement(image) {
+  function createImageElement(post) {
     const wrapper = document.createElement('div')
     wrapper.className = 'image-item'
-    wrapper.dataset.imageId = image.id
+    wrapper.dataset.imageId = post.id
     
-    const img = document.createElement('img')
-    img.src = image.thumbUrl
-    img.alt = image.alt
-    img.loading = 'lazy'
-    
-    img.addEventListener('error', () => {
-      img.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg"%3E%3C/svg%3E'
-    })
+    // Handle multiple images
+    if (post.images && Array.isArray(post.images)) {
+      if (post.images.length === 1) {
+        // Single image
+        const img = createImg(post.images[0])
+        wrapper.appendChild(img)
+      } else if (post.images.length === 2) {
+        // Two images side by side
+        const gridWrapper = document.createElement('div')
+        gridWrapper.className = 'multi-image-grid two-images'
+        post.images.forEach(imgData => {
+          const img = createImg(imgData)
+          gridWrapper.appendChild(img)
+        })
+        wrapper.appendChild(gridWrapper)
+      } else if (post.images.length === 3) {
+        // Three images: one large on left, two stacked on right
+        const gridWrapper = document.createElement('div')
+        gridWrapper.className = 'multi-image-grid three-images'
+        const leftWrapper = document.createElement('div')
+        leftWrapper.className = 'image-left'
+        leftWrapper.appendChild(createImg(post.images[0]))
+        const rightWrapper = document.createElement('div')
+        rightWrapper.className = 'image-right'
+        post.images.slice(1, 3).forEach(imgData => {
+          rightWrapper.appendChild(createImg(imgData))
+        })
+        gridWrapper.appendChild(leftWrapper)
+        gridWrapper.appendChild(rightWrapper)
+        wrapper.appendChild(gridWrapper)
+      } else {
+        // Four or more images: 2x2 grid with overlay
+        const gridWrapper = document.createElement('div')
+        gridWrapper.className = 'multi-image-grid four-plus-images'
+        post.images.slice(0, 4).forEach(imgData => {
+          const img = createImg(imgData)
+          gridWrapper.appendChild(img)
+        })
+        
+        // Add count badge if more than 4 images
+        if (post.images.length > 4) {
+          const countBadge = document.createElement('div')
+          countBadge.className = 'image-count-badge'
+          countBadge.textContent = `+${post.images.length - 4}`
+          gridWrapper.appendChild(countBadge)
+        }
+        
+        wrapper.appendChild(gridWrapper)
+      }
+    } else {
+      // Legacy single image format
+      const img = document.createElement('img')
+      img.src = post.thumbUrl
+      img.alt = post.alt || ''
+      img.loading = 'lazy'
+      wrapper.appendChild(img)
+    }
     
     const overlay = document.createElement('div')
     overlay.className = 'image-overlay'
-    
-    wrapper.appendChild(img)
     wrapper.appendChild(overlay)
     
-    if (state.filters.nsfwMode === 'blurred' && image.isNsfw) {
-      img.classList.add('blurred')
-      wrapper.classList.add('nsfw-blurred')
-      
-      wrapper.addEventListener('click', (e) => {
-        e.stopPropagation()
-        const confirmed = confirm('This image is marked as NSFW. View anyway?')
-        if (confirmed) {
-          openModal(image)
-        }
-      })
-    } else {
-      wrapper.addEventListener('click', () => openModal(image))
-    }
+    wrapper.addEventListener('click', () => openModal(post))
     
     wrapper.addEventListener('mouseenter', () => {
       overlay.style.opacity = '0.6'
@@ -65,6 +99,24 @@ export function createImageGrid() {
     })
     
     return wrapper
+  }
+  
+  function createImg(imgData) {
+    const img = document.createElement('img')
+    img.src = imgData.thumbUrl
+    img.alt = imgData.alt || ''
+    img.loading = 'lazy'
+    
+    img.addEventListener('error', () => {
+      img.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg"%3E%3C/svg%3E'
+    })
+    
+    // Store aspect ratio for later use
+    if (imgData.aspectRatio && imgData.aspectRatio.width && imgData.aspectRatio.height) {
+      img.dataset.aspectRatio = `${imgData.aspectRatio.width}/${imgData.aspectRatio.height}`
+    }
+    
+    return img
   }
   
   function updateLayout() {
@@ -79,10 +131,14 @@ export function createImageGrid() {
     const items = container.querySelectorAll('.image-item')
     items.forEach(item => {
       if (state.layout === 'grid') {
-        const aspectRatio = item.dataset.aspectRatio ? 
-          item.dataset.aspectRatio.split(':')[1] / item.dataset.aspectRatio.split(':')[0] : 
-          1
-        item.style.aspectRatio = aspectRatio.toString()
+        const img = item.querySelector('img')
+        const aspectRatio = img?.dataset.aspectRatio
+        if (aspectRatio) {
+          const [width, height] = aspectRatio.split('/').map(Number)
+          item.style.aspectRatio = (width / height).toString()
+        } else {
+          item.style.aspectRatio = ''
+        }
       } else {
         item.style.aspectRatio = ''
       }

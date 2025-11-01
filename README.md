@@ -6,8 +6,8 @@ A real-time, 100% client-side image gallery that streams photos from the Bluesky
 
 - 🔴 **Live Image Feed**: Stream images as they're posted to Bluesky in real-time
 - 🎨 **Dual Layouts**: Toggle between masonry (Pinterest-style) and uniform grid layouts
-- 🔞 **NSFW Filtering**: Three-state system (Hidden/Blurred/Shown) with blurred as default
 - 🔍 **Text Search**: Filter images by keywords in alt text, post text, or usernames
+- ⏸️ **Pause Stream**: Temporarily pause the incoming stream
 - 🧘 **Zen Mode**: Hide all UI for a distraction-free viewing experience
 - 📱 **Responsive Design**: Works beautifully on desktop, tablet, and mobile
 - ⚡ **Performance Optimized**: Lazy loading, image limits, and efficient rendering
@@ -16,8 +16,7 @@ A real-time, 100% client-side image gallery that streams photos from the Bluesky
 
 - **Vanilla JavaScript (ES6+)** - Pure performance, no framework overhead
 - **Vite** - Lightning-fast development and optimized production builds
-- **@atproto/api & @ipld/car** - Official ATProto SDK for firehose streaming
-- **CBOR** - Efficient data format parsing
+- **Jetstream** - Bluesky's lightweight JSON streaming API (no complex encoding!)
 - **CSS Grid** - Modern, native masonry and grid layouts
 
 ## Local Development
@@ -93,7 +92,7 @@ bskygallery/
 ├── README.md              # This file
 ├── src/
 │   ├── main.js            # Application entry point
-│   ├── firehose.js        # Firehose connection & CAR parsing
+│   ├── firehose.js        # Jetstream connection & message parsing
 │   ├── state.js           # State management (Observer pattern)
 │   ├── components/
 │   │   ├── FilterBar.js   # Filter controls UI
@@ -101,7 +100,7 @@ bskygallery/
 │   │   └── Modal.js       # Image detail modal
 │   ├── utils/
 │   │   ├── imageUrl.js    # CDN URL construction
-│   │   └── filters.js     # Filter logic (NSFW, search)
+│   │   └── filters.js     # Filter logic (search)
 │   └── styles/
 │       └── main.css       # All styles and animations
 └── deployment configs
@@ -112,9 +111,9 @@ bskygallery/
 
 ### Key Components
 
-#### Firehose Connection (`src/firehose.js`)
-- Establishes WebSocket connection to `wss://bsky.network`
-- Parses CAR (Content Addressable Archive) format messages
+#### Jetstream Connection (`src/firehose.js`)
+- Establishes WebSocket connection to Bluesky's Jetstream service
+- Parses JSON messages (no complex CBOR/CAR encoding!)
 - Filters for `app.bsky.feed.post` records with image embeds
 - Extracts metadata and constructs CDN URLs
 - Handles reconnection logic with exponential backoff
@@ -128,13 +127,12 @@ bskygallery/
 #### Image Grid (`src/components/ImageGrid.js`)
 - Renders filtered images in masonry or grid layout
 - Handles lazy loading and image errors
-- Applies blur effect for NSFW content
+- Multi-image post support (combines all images from a post into a single tile)
 - Smooth animations for new images
 
 #### Filter System (`src/utils/filters.js`)
-- NSFW detection based on post labels
 - Text search across alt text, post text, and usernames
-- Three-state NSFW handling (hidden/blurred/shown)
+- Efficient debouncing for search input
 
 ## Performance Optimizations
 
@@ -158,10 +156,10 @@ Tested on:
 
 ## Known Limitations
 
-- Firehose streams ALL network posts (high volume)
-- No authentication required (public firehose)
+- Streams network posts (high volume)
+- No authentication required (public Jetstream service)
 - Image quality depends on original post
-- CAR parsing adds overhead to each message
+- Jetstream provides lightweight JSON (no encoding overhead!)
 - Maximum 200 images displayed at once
 
 ## Future Enhancements
