@@ -9,18 +9,46 @@ export function createImageGrid() {
   container.className = 'grid-layout grid'
   
   let unsubscribe = null
+  let previousImageIds = []
   
   function render() {
-    const filteredImages = state.getFilteredImages().slice().reverse()
+    const newImages = state.getFilteredImages().slice().reverse() // chronological
+    const newImageIds = newImages.map(img => img.id)
 
-    // Clear the container
-    container.innerHTML = ''
-    
-    // Add images in chronological order
-    for (const image of filteredImages) {
-      const imageElement = createImageElement(image)
-      container.appendChild(imageElement)
+    const newIdsSet = new Set(newImageIds);
+    const oldIdsSet = new Set(previousImageIds);
+
+    const addedIds = newImageIds.filter(id => !oldIdsSet.has(id));
+    const removedIds = previousImageIds.filter(id => !newIdsSet.has(id));
+
+    // This is a "fast path" if images were only added, OR if the number of images added 
+    // is greater than the number of images removed (which is what happens when MAX_IMAGES is exceeded)
+    if (addedIds.length > 0 && addedIds.length >= removedIds.length) {
+      const imagesToAdd = newImages.filter(img => addedIds.includes(img.id));
+      for (const image of imagesToAdd) {
+        const imageElement = createImageElement(image);
+        container.appendChild(imageElement);
+      }
+
+      // If we're over capacity, remove the oldest ones from the DOM
+      if (removedIds.length > 0) {
+        removedIds.forEach(id => {
+          const elementToRemove = container.querySelector(`[data-image-id="${id}"]`);
+          if (elementToRemove) {
+            elementToRemove.remove();
+          }
+        });
+      }
+    } else {
+      // Slow path: Full re-render for filtering/removals
+      container.innerHTML = '';
+      for (const image of newImages) {
+        const imageElement = createImageElement(image);
+        container.appendChild(imageElement);
+      }
     }
+
+    previousImageIds = newImageIds;
   }
   
   function createImageElement(post) {
