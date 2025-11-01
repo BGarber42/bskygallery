@@ -7,6 +7,8 @@ let reconnectAttempts = 0
 const MAX_RECONNECT_ATTEMPTS = 10
 const RECONNECT_DELAY = 3000
 
+const didToHandleCache = new Map()
+
 export async function connectFirehose() {
   if (ws && ws.readyState === WebSocket.OPEN) {
     return
@@ -124,7 +126,7 @@ async function handleJetstreamMessage(event) {
         id: `${did}-${rkey}-${Date.now()}`,
         images,
         authorDid: did,
-        authorHandle: extractHandle(did),
+        authorHandle: await resolveHandle(did),
         text: post.text || '',
         timestamp,
         postUrl
@@ -145,8 +147,26 @@ function constructPostUrl(did, rkey) {
   return `https://bsky.app/profile/${did}`
 }
 
-function extractHandle(did) {
-  return did
+async function resolveHandle(did) {
+  if (didToHandleCache.has(did)) {
+    return didToHandleCache.get(did)
+  }
+
+  try {
+    const response = await fetch(`https://bsky.social/xrpc/com.atproto.repo.describeRepo?repo=${did}`)
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+    const data = await response.json()
+    const handle = data.handle
+    didToHandleCache.set(did, handle)
+    return handle
+  } catch (error) {
+    console.error(`Failed to resolve DID ${did}:`, error)
+    // Cache the failure by storing the DID itself, to avoid re-fetching on every post
+    didToHandleCache.set(did, did)
+    return did // Fallback to DID
+  }
 }
 
 export function disconnectFirehose() {
