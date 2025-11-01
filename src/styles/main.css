@@ -243,11 +243,38 @@ body {
   z-index: 1001;
 }
 
+.carousel-button {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  font-size: 3rem;
+  cursor: pointer;
+  z-index: 1002;
+  padding: 0 1rem;
+  transition: background 0.2s ease;
+}
+
+.carousel-button:hover {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.carousel-button.prev {
+  left: 1rem;
+}
+
+.carousel-button.next {
+  right: 1rem;
+}
+
 .modal-close:hover {
   transform: scale(1.2);
 }
 
 .modal-image-wrapper {
+  position: relative;
   flex: 1;
   display: flex;
   align-items: center;

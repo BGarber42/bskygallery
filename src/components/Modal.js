@@ -24,20 +24,75 @@ export function openModal(post) {
   imageWrapper.className = 'modal-image-wrapper'
   
   // Handle multiple images vs single image
-  if (post.images && Array.isArray(post.images)) {
-    // Multi-image post
-    post.images.forEach((imgData, index) => {
-      const img = document.createElement('img')
-      img.src = imgData.fullsizeUrl
-      img.alt = imgData.alt || ''
-      img.loading = 'lazy'
+  if (post.images && Array.isArray(post.images) && post.images.length > 1) {
+    // Multi-image post - create a carousel
+    let currentCarouselIndex = 0;
+    const images = post.images.map((imgData, index) => {
+      const img = document.createElement('img');
+      img.src = imgData.fullsizeUrl;
+      img.alt = imgData.alt || '';
+      img.loading = 'lazy';
+      img.style.display = index === 0 ? 'block' : 'none'; // Show first image
       
       img.addEventListener('error', () => {
-        img.src = imgData.thumbUrl
-      })
+        img.src = imgData.thumbUrl;
+      });
       
-      imageWrapper.appendChild(img)
-    })
+      imageWrapper.appendChild(img);
+      return img;
+    });
+
+    const prevButton = document.createElement('button');
+    prevButton.className = 'carousel-button prev';
+    prevButton.textContent = '‹';
+    prevButton.setAttribute('aria-label', 'Previous image');
+
+    const nextButton = document.createElement('button');
+    nextButton.className = 'carousel-button next';
+    nextButton.textContent = '›';
+    nextButton.setAttribute('aria-label', 'Next image');
+
+    function updateCarousel() {
+      images.forEach((img, index) => {
+        img.style.display = index === currentCarouselIndex ? 'block' : 'none';
+      });
+      prevButton.style.display = currentCarouselIndex === 0 ? 'none' : 'block';
+      nextButton.style.display = currentCarouselIndex === images.length - 1 ? 'none' : 'block';
+    }
+
+    prevButton.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (currentCarouselIndex > 0) {
+        currentCarouselIndex--;
+        updateCarousel();
+      }
+    });
+
+    nextButton.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (currentCarouselIndex < images.length - 1) {
+        currentCarouselIndex++;
+        updateCarousel();
+      }
+    });
+
+    imageWrapper.appendChild(prevButton);
+    imageWrapper.appendChild(nextButton);
+    updateCarousel();
+
+  } else if (post.images && Array.isArray(post.images)) {
+    // Single-image post
+    const imgData = post.images[0];
+    const img = document.createElement('img');
+    img.src = imgData.fullsizeUrl;
+    img.alt = imgData.alt || '';
+    img.loading = 'lazy';
+    
+    img.addEventListener('error', () => {
+      img.src = imgData.thumbUrl;
+    });
+    
+    imageWrapper.appendChild(img);
   } else {
     // Legacy single image
     const img = document.createElement('img')
