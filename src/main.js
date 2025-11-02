@@ -43,10 +43,18 @@ function init() {
       connectionStatusEl.style.color = statusColors[status] || 'white'
     }
     
+    document.body.classList.toggle('zen-mode', appState.zenMode)
+    
     setFilteredImagesForModal(appState.getFilteredImages())
   })
   
   connectFirehose()
+  
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'z') {
+      state.toggleZenMode()
+    }
+  })
   
   window.addEventListener('beforeunload', () => {
     disconnectFirehose()
