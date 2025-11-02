@@ -34,11 +34,6 @@ export function createFilterBar() {
   
   zenButton.addEventListener('click', () => {
     state.toggleZenMode()
-    if (state.zenMode) {
-      zenButton.textContent = 'Exit Zen'
-    } else {
-      zenButton.textContent = 'Zen Mode'
-    }
   })
   
   pauseButton.addEventListener('click', () => {
@@ -52,6 +47,12 @@ export function createFilterBar() {
   
   const unsubscribe = state.subscribe((appState) => {
     statsDisplay.textContent = `${appState.getFilteredImages().length} images | ${appState.connectionStatus}`
+    
+    if (appState.zenMode) {
+      zenButton.textContent = 'Exit Zen'
+    } else {
+      zenButton.textContent = 'Zen Mode'
+    }
   })
   
   container.appendChild(searchInput)
