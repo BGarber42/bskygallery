@@ -1,25 +1,28 @@
 # Bluesky Firehose Gallery
 
-A real-time, 100% client-side image gallery that streams photos from the Bluesky/ATProto network firehose. Watch as images are posted to Bluesky in real-time in a beautiful, endlessly scrolling grid.
+A real-time, 100% client-side image gallery that streams photos from the Bluesky/ATProto network via [Jetstream](https://docs.bsky.app/). Watch images appear as they are posted, in a scrollable feed tuned for live updates.
 
 ## Features
 
-- 🔴 **Live Image Feed**: Stream images as they're posted to Bluesky in real-time
-- 🎨 **Dual Layouts**: Toggle between masonry (Pinterest-style) and uniform grid layouts
-- 🔍 **Text Search**: Filter images by keywords in alt text, post text, or usernames
-- ⏸️ **Pause Stream**: Temporarily pause the incoming stream
-- 🧘 **Zen Mode**: Hide all UI for a distraction-free viewing experience
-- 📱 **Responsive Design**: Works beautifully on desktop, tablet, and mobile
-- ⚡ **Performance Optimized**: Lazy loading, image limits, and efficient rendering
+- **Live image feed** — WebSocket stream of new posts with image embeds
+- **Feed grid** (default) — Responsive row grid (2 / 4 / 8 columns) with virtual scrolling
+- **Dense wall** — 8-column Masonic layout for a Pinterest-style wall
+- **Incoming row** — New posts land in a fixed top strip (left→right), then merge in batches so the grid shifts down instead of shuffling sideways on every post
+- **Scroll away** — Scroll down to freeze the view; new posts buffer behind a “new posts” pill; jump back to latest
+- **Search** — Filter by keywords in alt text, post text, or handles (debounced)
+- **Pause** — Stop accepting new images without disconnecting
+- **Modal** — Full-size view with keyboard navigation between filtered images
+- **Responsive** — Works on desktop and mobile
 
-## Tech Stack
+## Tech stack
 
-- **Vanilla JavaScript (ES6+)** - Pure performance, no framework overhead
-- **Vite** - Lightning-fast development and optimized production builds
-- **Jetstream** - Bluesky's lightweight JSON streaming API (no complex encoding!)
-- **CSS Grid** - Modern, native masonry and grid layouts
+- **React 18** + **Vite 5**
+- **[@tanstack/react-virtual](https://tanstack.com/virtual)** — Feed grid virtualization
+- **[masonic](https://github.com/jaredLunde/masonic)** — Dense masonry layout
+- **Jetstream** — JSON firehose (no CAR/CBOR decoding in the browser)
+- **Plain CSS** — Layout and theming in `src/styles/main.css`
 
-## Local Development
+## Local development
 
 ### Prerequisites
 
@@ -27,162 +30,109 @@ A real-time, 100% client-side image gallery that streams photos from the Bluesky
 
 ### Setup
 
-1. Clone the repository:
 ```bash
 git clone <your-repo-url>
 cd bskygallery
-```
-
-2. Install dependencies:
-```bash
 npm install
-```
-
-3. Start the development server:
-```bash
 npm run dev
 ```
 
-The application will open at `http://localhost:3000`
+Opens at `http://localhost:3000` (see `vite.config.js`).
 
-### Development Scripts
+### Scripts
 
-- `npm run dev` - Start development server with hot module replacement
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build locally
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Dev server with HMR |
+| `npm run build` | Production build to `dist/` |
+| `npm run preview` | Serve the production build locally |
 
 ## Deployment
 
-This is a 100% static website and can be deployed to any static hosting service.
+Static site — build output is `dist/`. `vite.config.js` sets `base: './'` for subdirectory hosting (e.g. GitHub Pages project sites).
 
 ### GitHub Pages
 
-1. Push your code to GitHub
-2. Go to Settings → Pages
-3. Select the branch and set source to `/root`
-4. Or use the included GitHub Actions workflow (`.github/workflows/deploy.yml`)
+1. Enable **GitHub Pages** for the repo (source: **GitHub Actions**).
+2. Push to `main` — [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) runs `npm ci`, `npm run build`, and deploys `dist/`.
 
-The GitHub Actions workflow will automatically build and deploy on every push to `main`.
+No need to commit `dist/` or set the Pages branch to `/root`.
 
-### Vercel
+### Vercel / Netlify
 
-1. Install Vercel CLI: `npm i -g vercel`
-2. Run `vercel` in the project directory
-3. Or connect your GitHub repo through the Vercel dashboard
-
-Configuration is included in `vercel.json`.
-
-### Netlify
-
-1. Install Netlify CLI: `npm i -g netlify-cli`
-2. Run `netlify deploy --prod`
-3. Or drag-and-drop the `dist` folder to Netlify dashboard
-
-Configuration is included in `netlify.toml`.
+Use the included [`vercel.json`](vercel.json) or [`netlify.toml`](netlify.toml), or connect the repo in the host dashboard (build: `npm run build`, output: `dist`).
 
 ## Architecture
 
-### Project Structure
-
 ```
 bskygallery/
-├── index.html              # Main HTML entry point
-├── package.json            # Dependencies and scripts
-├── vite.config.js          # Vite configuration
-├── README.md              # This file
+├── index.html
+├── package.json
+├── vite.config.js
+├── CLAUDE.md                 # Dev notes for contributors / agents
 ├── src/
-│   ├── main.js            # Application entry point
-│   ├── firehose.js        # Jetstream connection & message parsing
-│   ├── state.js           # State management (Observer pattern)
-│   ├── components/
-│   │   ├── FilterBar.js   # Filter controls UI
-│   │   ├── ImageGrid.js   # Image grid/masonry rendering
-│   │   └── Modal.js       # Image detail modal
+│   ├── main.jsx              # React entry
+│   ├── App.jsx               # Shell, layout mode, firehose lifecycle
+│   ├── state.js              # Images, filters, layoutMode, subscribers
+│   ├── firehose.js           # Jetstream WebSocket + post parsing
+│   ├── constants.js          # Column counts, dwell/batch timings
+│   ├── react/
+│   │   ├── VirtualRowGallery.jsx   # Feed grid (default)
+│   │   ├── MasonryGallery.jsx    # Dense wall
+│   │   ├── useIncomingRowFeed.js   # Incoming strip + merge (both layouts)
+│   │   ├── MasonryCard.jsx
+│   │   ├── FilterBar.jsx
+│   │   ├── ModalHost.jsx
+│   │   ├── NewPostsPill.jsx
+│   │   └── galleryLayout.js
 │   ├── utils/
-│   │   ├── imageUrl.js    # CDN URL construction
-│   │   └── filters.js     # Filter logic (search)
+│   │   ├── imageUrl.js
+│   │   └── filters.js
 │   └── styles/
-│       └── main.css       # All styles and animations
-└── deployment configs
-    ├── vercel.json
-    ├── netlify.toml
-    └── .github/workflows/
+│       └── main.css
+└── .github/workflows/
+    └── deploy.yml
 ```
 
-### Key Components
+### Data flow
 
-#### Jetstream Connection (`src/firehose.js`)
-- Establishes WebSocket connection to Bluesky's Jetstream service
-- Parses JSON messages (no complex CBOR/CAR encoding!)
-- Filters for `app.bsky.feed.post` records with image embeds
-- Extracts metadata and constructs CDN URLs
-- Handles reconnection logic with exponential backoff
+1. **`firehose.js`** connects to Jetstream, parses `app.bsky.feed.post` creates with images, builds stable post ids (`did-rkey`), calls `state.addImage()`.
+2. **`state.js`** keeps newest-first list (max **200** images; tail evicted in batches of 8). Notifies React via `snapshotVersion`.
+3. **`App.jsx`** passes filtered items to **Feed grid** or **Dense wall**.
+4. **`useIncomingRowFeed`** (both layouts) holds up to one row of newest posts in an **incoming strip**, then prepends them to the main list when dwell/thumb-load rules pass. When you scroll away from the top, the visible list freezes and new heads go to a buffer until you jump to latest.
 
-#### State Management (`src/state.js`)
-- Centralized state using Observer pattern
-- Manages image array with rolling window (max 200 images)
-- Stores filter settings and UI preferences
-- Notifies subscribers on state changes
+### Layout modes
 
-#### Image Grid (`src/components/ImageGrid.js`)
-- Renders filtered images in masonry or grid layout
-- Handles lazy loading and image errors
-- Multi-image post support (combines all images from a post into a single tile)
-- Smooth animations for new images
+| Mode | UI label | Implementation |
+|------|----------|----------------|
+| `feed` (default) | **Dense wall** toggles away | `VirtualRowGallery` — row-major virtual rows |
+| `dense` | **Feed grid** toggles back | `MasonryGallery` — 8-column Masonic + same incoming strip |
 
-#### Filter System (`src/utils/filters.js`)
-- Text search across alt text, post text, and usernames
-- Efficient debouncing for search input
+Feed column count follows viewport width (see `getFeedColumnCount` in `src/constants.js`).
 
-## Performance Optimizations
+## Performance
 
-- **Lazy Loading**: Images load only when entering viewport
-- **Rolling Window**: Maximum 200 images to prevent memory issues
-- **Debounced Search**: Reduces filtering computation
-- **Efficient Rendering**: Minimal DOM updates using CSS Grid
-- **Image Thumbnails**: Fast initial load with full-size on modal
+- Virtualized feed rows (only visible rows mounted)
+- Masonic overscan for dense mode
+- Lazy-loaded thumbnails in the main grid; eager load in the incoming strip
+- Rolling cap of 200 posts in global state
+- Debounced search (300ms)
 
-## Browser Compatibility
+## Browser support
 
-- Modern browsers supporting ES6+
-- CSS Grid support required
-- WebSocket support required
+Modern browsers with ES modules, CSS Grid, and WebSocket. Tested on recent Chrome, Firefox, Safari, and Edge.
 
-Tested on:
-- Chrome 90+
-- Firefox 88+
-- Safari 14+
-- Edge 90+
+## Limitations
 
-## Known Limitations
-
-- Streams network posts (high volume)
-- No authentication required (public Jetstream service)
-- Image quality depends on original post
-- Jetstream provides lightweight JSON (no encoding overhead!)
-- Maximum 200 images displayed at once
-
-## Future Enhancements
-
-- [ ] Add option to filter by specific users/handles
-- [ ] Implement pagination for older images
-- [ ] Add image export/download feature
-- [ ] Create custom feeds by hashtags
-- [ ] Add keyboard shortcuts
-- [ ] Implement image quality selector
-- [ ] Add analytics and stats dashboard
+- Public Jetstream endpoint; high-volume network firehose
+- No auth or private feeds
+- ~200 posts retained in memory at the live edge (more may remain visible while scrolled away from top until you jump to latest)
+- Dense mode still relayouts the masonry wall when a full incoming row merges (batched, not per-post)
 
 ## License
 
-MIT License - feel free to fork and modify as needed!
-
-## Contributing
-
-Contributions welcome! Please open an issue or pull request.
+MIT
 
 ## Acknowledgments
 
-- Built on the [AT Protocol](https://atproto.com/)
-- Powered by [Bluesky](https://bsky.app/)
-- Icons and UI inspiration from various sources
-
+- [AT Protocol](https://atproto.com/) / [Bluesky](https://bsky.app/)
