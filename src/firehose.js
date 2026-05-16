@@ -123,7 +123,7 @@ async function handleJetstreamMessage(event) {
     if (images.length > 0) {
       // Create a single post object with all images
       const postData = {
-        id: `${did}-${rkey}-${Date.now()}`,
+        id: `${did}-${rkey}`,
         images,
         authorDid: did,
         authorHandle: await resolveHandle(did),

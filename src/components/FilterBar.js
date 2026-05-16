@@ -9,10 +9,6 @@ export function createFilterBar() {
   searchInput.className = 'filter-control search-input'
   searchInput.placeholder = 'Search...'
   
-  const zenButton = document.createElement('button')
-  zenButton.className = 'filter-control zen-toggle'
-  zenButton.textContent = 'Zen Mode'
-  
   const pauseButton = document.createElement('button')
   pauseButton.className = 'filter-control pause-toggle'
   pauseButton.textContent = 'Pause'
@@ -32,10 +28,6 @@ export function createFilterBar() {
     }, 300)
   })
   
-  zenButton.addEventListener('click', () => {
-    state.toggleZenMode()
-  })
-  
   pauseButton.addEventListener('click', () => {
     state.togglePaused()
     if (state.isPaused) {
@@ -47,16 +39,9 @@ export function createFilterBar() {
   
   const unsubscribe = state.subscribe((appState) => {
     statsDisplay.textContent = `${appState.getFilteredImages().length} images | ${appState.connectionStatus}`
-    
-    if (appState.zenMode) {
-      zenButton.textContent = 'Exit Zen'
-    } else {
-      zenButton.textContent = 'Zen Mode'
-    }
   })
   
   container.appendChild(searchInput)
-  container.appendChild(zenButton)
   container.appendChild(pauseButton)
   container.appendChild(statsDisplay)
   
