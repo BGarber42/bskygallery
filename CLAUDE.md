@@ -13,9 +13,9 @@
 - Feed columns: [`getFeedColumnCount`](src/constants.js) — 2 / 4 / 8 (8 columns from 720px scroll width).
 - Dense: `GALLERY_COLUMN_COUNT` (8) for masonry + eviction batching.
 
-## Feed: incoming row + main grid
+## Incoming row + main grid (feed and dense)
 
-[`useIncomingRowFeed`](src/react/useIncomingRowFeed.js) (feed only) splits the live view:
+[`useIncomingRowFeed`](src/react/useIncomingRowFeed.js) splits the live view in **feed** and **dense** modes:
 
 - **`incomingRow`** — up to `columnCount` newest posts in a fixed top strip; fills **left→right**; thumbs use **eager** load (`priorityLoad` + `onThumbLoad` on [`MasonryCard`](src/react/MasonryCard.jsx)).
 - **Batching** — rapid firehose heads are coalesced for [`INCOMING_ROW_BATCH_MS`](src/constants.js) (350ms) before entering the strip.
@@ -25,7 +25,7 @@
 - **Virtualizer** incoming strip in **normal flow** above the spacer (no `scrollMargin` — spacer is already offset). `measureElement` on rows. No `content-visibility` on feed cells (breaks row measurement).
 - [`NewPostsPill`](src/react/NewPostsPill.jsx) for buffered posts when scrolled away.
 
-Dense mode still uses [`useFeedFollowing`](src/react/useFeedFollowing.js) (masonry + buffer).
+**Dense:** same hook with `GALLERY_COLUMN_COUNT` (8); fixed top strip + Masonic body in [`MasonryGallery.jsx`](src/react/MasonryGallery.jsx). Merges still relayout masonry, but only in row-sized batches (not per-post shuffle).
 
 ## React state
 
@@ -42,5 +42,5 @@ Dense mode still uses [`useFeedFollowing`](src/react/useFeedFollowing.js) (mason
 ## Gotchas
 
 - Filter/search: hook resets feed when `mainItems` no longer overlaps `items` ids.
-- Masonic dense: `usePositioner` deps include `displayItems.length`.
+- Masonic dense: `usePositioner` deps include `mainItems.length`.
 - `React.StrictMode` doubles effects; firehose connect/disconnect idempotent.

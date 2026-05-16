@@ -5,9 +5,10 @@ import {
   GALLERY_COLUMN_GAP_PX,
   GALLERY_ROW_GAP_PX,
 } from '../constants.js'
+import { getColumnWidth } from './galleryLayout.js'
 import { MasonryCard } from './MasonryCard.jsx'
 import { NewPostsPill } from './NewPostsPill.jsx'
-import { useFeedFollowing } from './useFeedFollowing.js'
+import { useIncomingRowFeed } from './useIncomingRowFeed.js'
 
 export function MasonryGallery({ items }) {
   const scrollRef = useRef(null)
@@ -17,9 +18,21 @@ export function MasonryGallery({ items }) {
   const [isScrolling, setIsScrolling] = useState(false)
   const scrollIdleTimerRef = useRef(null)
 
-  const { displayItems, bufferCount, jumpToLatest } = useFeedFollowing(
-    items,
-    scrollRef
+  const { incomingRow, mainItems, bufferCount, jumpToLatest, onIncomingThumbLoad } =
+    useIncomingRowFeed(items, scrollRef, GALLERY_COLUMN_COUNT)
+
+  const columnWidth = useMemo(
+    () => getColumnWidth(width, GALLERY_COLUMN_COUNT, GALLERY_COLUMN_GAP_PX),
+    [width]
+  )
+
+  const gridStyle = useMemo(
+    () => ({
+      display: 'grid',
+      gridTemplateColumns: `repeat(${GALLERY_COLUMN_COUNT}, 1fr)`,
+      gap: `${GALLERY_ROW_GAP_PX}px ${GALLERY_COLUMN_GAP_PX}px`,
+    }),
+    []
   )
 
   useEffect(() => {
@@ -62,7 +75,7 @@ export function MasonryGallery({ items }) {
       columnGutter: GALLERY_COLUMN_GAP_PX,
       rowGutter: GALLERY_ROW_GAP_PX,
     },
-    [width, displayItems.length]
+    [width, mainItems.length]
   )
 
   const resizeObserver = useResizeObserver(positioner)
@@ -82,7 +95,7 @@ export function MasonryGallery({ items }) {
   const grid = useMasonry({
     positioner,
     resizeObserver,
-    items: displayItems,
+    items: mainItems,
     height,
     scrollTop,
     isScrolling,
@@ -96,6 +109,19 @@ export function MasonryGallery({ items }) {
 
   return (
     <div className="gallery-scroll" ref={scrollRef}>
+      {incomingRow.length > 0 ? (
+        <div className="incoming-row" style={gridStyle}>
+          {incomingRow.map((post) => (
+            <MasonryCard
+              key={post.id}
+              data={post}
+              width={columnWidth}
+              priorityLoad
+              onThumbLoad={onIncomingThumbLoad}
+            />
+          ))}
+        </div>
+      ) : null}
       {grid}
       <NewPostsPill count={bufferCount} onClick={jumpToLatest} />
     </div>
